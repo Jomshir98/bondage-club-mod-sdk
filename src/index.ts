@@ -1,12 +1,15 @@
 import { ThrowError } from './errors';
 import { GetModsInfo, RegisterMod } from './modRegistry';
 import type { ModSDKGlobalAPI } from './api';
+import { IsObject } from './utils';
+import { GetPatchedFunctionsInfo } from './patching';
 
 function CreateGlobalAPI(): ModSDKGlobalAPI {
 	const result: ModSDKGlobalAPI = {
 		version: VERSION,
 		registerMod: RegisterMod,
 		getModsInfo: GetModsInfo,
+		getPatchingInfo: GetPatchedFunctionsInfo,
 	};
 
 	return Object.freeze(result);
@@ -16,7 +19,7 @@ function Init(): ModSDKGlobalAPI {
 	if (typeof window.bcModSdk === 'undefined') {
 		return window.bcModSdk = CreateGlobalAPI();
 	}
-	if (!window.bcModSdk || typeof window.bcModSdk !== 'object' || Array.isArray(window.bcModSdk)) {
+	if (!IsObject(window.bcModSdk)) {
 		ThrowError('Failed to init Mod SDK: Name already in use');
 	}
 	if (window.bcModSdk.version !== VERSION) {
