@@ -63,7 +63,7 @@ function ApplyPatches(original: (...args: any[]) => any, patches: Map<string, st
 	if (patches.size === 0) {
 		return original;
 	}
-	let fnStr = original.toString();
+	let fnStr = original.toString().replaceAll('\r\n', '\n');
 	for (const [k, v] of patches.entries()) {
 		if (!fnStr.includes(k)) {
 			console.warn(`ModSDK: Patching ${original.name}: Patch ${k} not applied`);
@@ -85,8 +85,13 @@ function UpdatePatchedFunction(data: IPatchedFunctionDataBase): IPatchedFunction
 			continue;
 		hooks.push(...functionPatches.hooks);
 		for (const [k, v] of functionPatches.patches.entries()) {
-			if (patches.has(k)) {
-				// TODO: Error
+			if (patches.has(k) && patches.get(k) !== v) {
+				console.warn(
+					`ModSDK: Mod '${mod.name}' is patching function ${data.name} with same pattern that is already applied by different mod, but with different pattern:\n` +
+					`Pattern:\n${k}\n` +
+					`Patch1:\n${patches.get(k) || ''}\n` +
+					`Patch2:\n${v}`,
+				);
 			}
 			patches.set(k, v);
 			patchesSources.add(mod.name);
