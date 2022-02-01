@@ -29,6 +29,7 @@ function Init(): ModSDKGlobalAPI {
 	return window.bcModSdk;
 }
 
+/** @public */
 const API = Init();
 // Make this both CommonJS and IIFE bundle
 if (typeof exports !== 'undefined') {
@@ -38,4 +39,7 @@ if (typeof exports !== 'undefined') {
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 	exports.default = API;
 }
+/** @public */
 export default API;
+
+export * from './api';

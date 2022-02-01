@@ -10,7 +10,7 @@
 		"outDir": "./dist",
 		"declaration": true,
 		"declarationDir": "./types",
-		"removeComments": true,
+		"removeComments": false,
 		"strict": true,
 		"noImplicitOverride": true,
 		"noImplicitReturns": true
