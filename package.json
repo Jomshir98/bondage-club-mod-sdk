@@ -4,11 +4,12 @@
 	"repository": "git@github.com:Jomshir98/bondage-club-mod-sdk.git",
 	"author": "Jomshir98 <jomshir98@protonmail.com>",
 	"license": "MIT",
-	"private": true,
+	"files": ["/dist"],
 	"main": "dist/bcmodsdk.js",
 	"types": "dist/bcmodsdk.d.ts",
 	"scripts": {
 		"build": "rollup -c && api-extractor run && rimraf ./dist/types",
+		"prepack": "rimraf ./dist && yarn run build",
 		"lint": "tsc --noEmit -p . && eslint ."
 	},
 	"devDependencies": {
