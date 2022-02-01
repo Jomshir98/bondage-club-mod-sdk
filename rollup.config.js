@@ -10,11 +10,13 @@ import packageJson from './package.json';
 const version = packageJson.version;
 
 /** @type {import("rollup").RollupOptions} */
-export default {
+const config = {
 	input: 'src/index.ts',
 	output: {
-		file: 'dist/bcmdk.js',
+		file: 'dist/bcmodsdk.js',
 		format: 'iife',
+		intro: `const VERSION='${version}';`,
+		name: 'bcModSdk',
 	},
 	treeshake: false,
 	plugins: [
@@ -23,7 +25,8 @@ export default {
 		terser(),
 		banner2(() =>
 			`// Bondage Club Mod Development Kit (${version})\n` +
-			'// For more info see: https://github.com/Jomshir98/bondage-club-mod-sdk\n',
+			'// For more info see: https://github.com/Jomshir98/bondage-club-mod-sdk\n' +
+			'/** @type {ModSDKGlobalAPI} */\n',
 		),
 	],
 	onwarn(warning, warn) {
@@ -36,3 +39,5 @@ export default {
 		}
 	},
 };
+
+export default config;

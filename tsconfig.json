@@ -8,6 +8,8 @@
 		"esModuleInterop": true,
 		"baseUrl": "./src",
 		"outDir": "./dist",
+		"declaration": true,
+		"declarationDir": "./types",
 		"removeComments": true,
 		"strict": true,
 		"noImplicitOverride": true,

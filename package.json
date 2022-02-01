@@ -1,11 +1,12 @@
 {
 	"name": "bondage-club-mod-sdk",
 	"version": "0.1.0",
-	"main": "dist/bcmdk.js",
 	"repository": "git@github.com:Jomshir98/bondage-club-mod-sdk.git",
 	"author": "Jomshir98 <jomshir98@protonmail.com>",
 	"license": "MIT",
 	"private": true,
+	"main": "dist/bcmodsdk.js",
+	"types": "dist/types/index.d.ts",
 	"scripts": {
 		"build": "rollup -c",
 		"lint": "tsc --noEmit -p . && eslint ."
