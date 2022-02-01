@@ -30,16 +30,16 @@ function Init(): ModSDKGlobalAPI {
 }
 
 /** @public */
-const API = Init();
+const bcModSdk = Init();
 // Make this both CommonJS and IIFE bundle
 if (typeof exports !== 'undefined') {
 	Object.defineProperty(exports, '__esModule', {
 		value: true,
 	});
 	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-	exports.default = API;
+	exports.default = bcModSdk;
 }
 /** @public */
-export default API;
+export default bcModSdk;
 
 export * from './api';
