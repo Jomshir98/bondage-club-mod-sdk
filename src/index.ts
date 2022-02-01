@@ -1,19 +1,7 @@
 import { ThrowError } from './errors';
-import { GetModsInfo, RegisterMod } from './modRegistry';
 import type { ModSDKGlobalAPI } from './api';
+import { CreateGlobalAPI } from './sdkApi';
 import { IsObject } from './utils';
-import { GetPatchedFunctionsInfo } from './patching';
-
-function CreateGlobalAPI(): ModSDKGlobalAPI {
-	const result: ModSDKGlobalAPI = {
-		version: VERSION,
-		registerMod: RegisterMod,
-		getModsInfo: GetModsInfo,
-		getPatchingInfo: GetPatchedFunctionsInfo,
-	};
-
-	return Object.freeze(result);
-}
 
 function Init(): ModSDKGlobalAPI {
 	if (typeof window.bcModSdk === 'undefined') {

@@ -4,6 +4,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import { PatchedFunctionInfo, PatchHook } from './api';
 import { registeredMods } from './modRegistry';
+import { sdkApi } from './sdkApi';
 import { ArrayUnique, CRC32, IsObject } from './utils';
 
 export interface IHookData {
@@ -40,10 +41,16 @@ function MakePatchRouter(data: IPatchedFunctionData): (...args: any[]) => any {
 		let hookIndex = 0;
 		const callNextHook = (nextargs: any[]) => {
 			if (hookIndex < hooks.length) {
+				const hook = hooks[hookIndex];
 				hookIndex++;
-				return hooks[hookIndex - 1].hook(nextargs, callNextHook);
+				const onExit = sdkApi.errorReporterHooks.hookEnter?.(data.name, hook.mod);
+				const resIntermediate = hook.hook(nextargs, callNextHook);
+				onExit?.();
+				return resIntermediate;
 			} else {
+				const onExit = sdkApi.errorReporterHooks.hookChainExit?.(data.name, precomputed.patchesSources);
 				const resExit = final.apply(this, args);
+				onExit?.();
 				return resExit;
 			}
 		};
