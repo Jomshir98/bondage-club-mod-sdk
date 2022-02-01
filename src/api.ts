@@ -10,10 +10,10 @@
  * The return value is then used as return value instead of original one.
  * @public
  */
-export type PatchHook = (args: any[], next: (args: any[]) => any) => any;
+export type PatchHook<Unknown = any> = (args: Unknown[], next: (args: any[]) => Unknown) => any;
 
 /** @public */
-export interface ModSDKModAPI {
+export interface ModSDKModAPI<Unknown = any> {
 	/** Unload this mod, removing any hooks or patches by it. To continue using SDK another call to `registerMod` is required */
 	unload(): void;
 
@@ -24,7 +24,7 @@ export interface ModSDKModAPI {
 	 * @param hook - The hook itself to use, @see PatchHook
 	 * @returns Function that can be called to remove this hook
 	 */
-	hookFunction(functionName: string, priority: number, hook: PatchHook): () => void;
+	hookFunction(functionName: string, priority: number, hook: PatchHook<Unknown>): () => void;
 
 	/**
 	 * Call original function, bypassing any hooks and ignoring any patches applied by ALL mods.
@@ -98,7 +98,7 @@ export interface PatchedFunctionInfo {
  * Accessible using the exported value or as `window.bcModSdk`
  * @public
  */
-export interface ModSDKGlobalAPI {
+export interface ModSDKGlobalAPI<Unknown = any> {
 	/** The version of the SDK itself. Attempting to load two different SDK versions will fail. */
 	version: string;
 
@@ -110,7 +110,7 @@ export interface ModSDKGlobalAPI {
 	 * If `false` any attempt to register a new mod with same name will fail. Defaults to `false`
 	 * @returns The API usable by mod. @see ModSDKModAPI
 	 */
-	registerMod(name: string, version: string, allowReplace?: boolean): ModSDKModAPI;
+	registerMod(name: string, version: string, allowReplace?: boolean): ModSDKModAPI<Unknown>;
 
 	/** Get info about all registered mods */
 	getModsInfo(): ModSDKModInfo[];
