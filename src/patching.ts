@@ -32,6 +32,14 @@ interface IPatchedFunctionData extends IPatchedFunctionDataBase {
 
 const patchedFunctions: Map<string, IPatchedFunctionData> = new Map();
 
+const displayedWarnings: Set<string> = new Set();
+function WarnUnique(warning: string): void {
+	if (displayedWarnings.has(warning))
+		return;
+	displayedWarnings.add(warning);
+	console.warn(warning);
+}
+
 function MakePatchRouter(data: IPatchedFunctionData): (...args: any[]) => any {
 	return function modSDKPatchRouter(this: any, ...args: any[]) {
 		// Mod SDK Function hook
@@ -66,7 +74,7 @@ function ApplyPatches(original: (...args: any[]) => any, patches: Map<string, st
 	let fnStr = original.toString().replaceAll('\r\n', '\n');
 	for (const [k, v] of patches.entries()) {
 		if (!fnStr.includes(k)) {
-			console.warn(`ModSDK: Patching ${original.name}: Patch ${k} not applied`);
+			WarnUnique(`ModSDK: Patching ${original.name}: Patch ${k} not applied`);
 		}
 		fnStr = fnStr.replaceAll(k, v);
 	}
@@ -86,7 +94,7 @@ function UpdatePatchedFunction(data: IPatchedFunctionDataBase): IPatchedFunction
 		hooks.push(...functionPatches.hooks);
 		for (const [k, v] of functionPatches.patches.entries()) {
 			if (patches.has(k) && patches.get(k) !== v) {
-				console.warn(
+				WarnUnique(
 					`ModSDK: Mod '${mod.name}' is patching function ${data.name} with same pattern that is already applied by different mod, but with different pattern:\n` +
 					`Pattern:\n${k}\n` +
 					`Patch1:\n${patches.get(k) || ''}\n` +
