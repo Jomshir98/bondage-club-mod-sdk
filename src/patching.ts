@@ -71,7 +71,7 @@ function ApplyPatches(original: (...args: any[]) => any, patches: Map<string, st
 		fnStr = fnStr.replaceAll(k, v);
 	}
 	// eslint-disable-next-line no-eval
-	return eval(`(${fnStr})`);
+	return (1, eval)(`(${fnStr})`);
 }
 
 function UpdatePatchedFunction(data: IPatchedFunctionDataBase): IPatchedFunctionPrecomputed {
