@@ -99,8 +99,10 @@ export interface PatchedFunctionInfo {
  * @public
  */
 export interface ModSDKGlobalAPI<Unknown = any> {
-	/** The version of the SDK itself. Attempting to load two different SDK versions will fail. */
+	/** The version of the SDK itself. Attempting to load two different SDK versions will warn, but work as long as `apiVersion` is same. */
 	version: string;
+	/** The API version of the SDK itself. Attempting to load two different SDK versions will fail. */
+	apiVersion: number;
 
 	/**
 	 * Register a mod, receiving access to the mod API
