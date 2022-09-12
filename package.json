@@ -10,7 +10,7 @@
 	"main": "dist/bcmodsdk.js",
 	"types": "dist/bcmodsdk.d.ts",
 	"scripts": {
-		"build": "rollup -c && api-extractor run && rimraf ./dist/types",
+		"build": "rimraf ./dist && rollup -c && api-extractor run && rimraf ./dist/types",
 		"prepack": "rimraf ./dist && yarn run build",
 		"lint": "tsc --noEmit -p . && eslint ."
 	},
