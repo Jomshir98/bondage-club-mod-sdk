@@ -25,6 +25,7 @@ export function UnloadMod(mod: ModInfo): void {
 	}
 	registeredMods.delete(mod.name);
 	mod.loaded = false;
+	UpdateAllPatches();
 }
 
 export function RegisterMod(name: string, version: string, allowReplace?: boolean): ModSDKModAPI {
