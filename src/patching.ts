@@ -17,6 +17,7 @@ interface IPatchedFunctionPrecomputed {
 	readonly hooks: readonly IHookData[];
 	readonly patches: ReadonlyMap<string, string>;
 	readonly patchesSources: ReadonlySet<string>;
+	readonly enter: (args: any[]) => any;
 	readonly final: (...args: any[]) => any;
 }
 
@@ -43,27 +44,7 @@ function WarnUnique(warning: string): void {
 function MakePatchRouter(data: IPatchedFunctionData): (...args: any[]) => any {
 	return function modSDKPatchRouter(this: any, ...args: any[]) {
 		// Mod SDK Function hook
-		const precomputed = data.precomputed;
-		const hooks = precomputed.hooks;
-		const final = precomputed.final;
-		let hookIndex = 0;
-		const callNextHook = (nextargs: any[]) => {
-			if (hookIndex < hooks.length) {
-				const hook = hooks[hookIndex];
-				hookIndex++;
-				const onExit = sdkApi.errorReporterHooks.hookEnter?.(data.name, hook.mod);
-				const resIntermediate = hook.hook(nextargs, callNextHook);
-				onExit?.();
-				return resIntermediate;
-			} else {
-				const onExit = sdkApi.errorReporterHooks.hookChainExit?.(data.name, precomputed.patchesSources);
-				const resExit = final.apply(this, args);
-				onExit?.();
-				return resExit;
-			}
-		};
-		const res = callNextHook(args);
-		return res;
+		return data.precomputed.enter.apply(this, [args]);
 	};
 }
 
@@ -107,12 +88,33 @@ function UpdatePatchedFunction(data: IPatchedFunctionDataBase): IPatchedFunction
 	}
 
 	hooks.sort((a, b) => b.priority - a.priority);
+	const final = ApplyPatches(data.original, patches);
+
+	let next: (this: any, nextargs: any[]) => any = function (args) {
+		const onExit = sdkApi.errorReporterHooks.hookChainExit?.(data.name, patchesSources);
+		const resExit = final.apply(this, args);
+		onExit?.();
+		return resExit;
+	};
+
+	for (let i = hooks.length - 1; i >= 0; i--) {
+		const hook = hooks[i];
+		const nextHook = next;
+
+		next = function (args) {
+			const onExit = sdkApi.errorReporterHooks.hookEnter?.(data.name, hook.mod);
+			const resIntermediate = hook.hook.apply(this, [args, (nextargs) => nextHook.apply(this, [nextargs])]);
+			onExit?.();
+			return resIntermediate;
+		};
+	}
 
 	return {
 		hooks,
 		patches,
 		patchesSources,
-		final: ApplyPatches(data.original, patches),
+		enter: next,
+		final,
 	};
 }
 
