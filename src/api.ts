@@ -113,9 +113,9 @@ export interface PatchedFunctionInfo {
  */
 export interface ModSDKGlobalAPI<Unknown = any> {
 	/** The version of the SDK itself. Attempting to load two different SDK versions will warn, but work as long as `apiVersion` is same. */
-	version: string;
+	readonly version: string;
 	/** The API version of the SDK itself. Attempting to load two different SDK versions will fail. */
-	apiVersion: number;
+	readonly apiVersion: number;
 
 	/**
 	 * Register a mod, receiving access to the mod API
@@ -134,7 +134,7 @@ export interface ModSDKGlobalAPI<Unknown = any> {
 	getPatchingInfo(): Map<string, PatchedFunctionInfo>;
 
 	/** Internal API, please **DO NOT USE** */
-	errorReporterHooks: {
+	readonly errorReporterHooks: {
 		hookEnter: ((fn: string, mod: string) => (() => void)) | null;
 		hookChainExit: ((fn: string, patchMods: ReadonlySet<string>) => (() => void)) | null;
 	};
