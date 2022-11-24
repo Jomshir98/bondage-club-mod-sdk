@@ -106,7 +106,12 @@ function UpdatePatchedFunction(data: IPatchedFunctionDataBase): IPatchedFunction
 
 		next = function (args) {
 			const onExit = sdkApi.errorReporterHooks.hookEnter?.(data.name, hook.mod);
-			const resIntermediate = hook.hook.apply(this, [args, (nextargs) => nextHook.apply(this, [nextargs])]);
+			const resIntermediate = hook.hook.apply(this, [args, (nextargs) => {
+				if (arguments.length !== 1 || !Array.isArray(args)) {
+					throw new Error(`Mod ${hook.mod} failed to call next hook: Expected args to be array, got ${typeof nextargs}`);
+				}
+				nextHook.call(this, nextargs);
+			}]);
 			onExit?.();
 			return resIntermediate;
 		};
