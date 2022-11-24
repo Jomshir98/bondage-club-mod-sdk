@@ -29,6 +29,9 @@ interface IPatchedFunctionDataBase {
 
 interface IPatchedFunctionData extends IPatchedFunctionDataBase {
 	precomputed: IPatchedFunctionPrecomputed;
+	readonly context: any;
+	readonly contextProperty: string;
+	router: (...args: any[]) => any;
 }
 
 const patchedFunctions: Map<string, IPatchedFunctionData> = new Map();
@@ -146,9 +149,13 @@ function InitPatchableFunction(target: string, forceUpdate: boolean = false): IP
 		result = {
 			...data,
 			precomputed: UpdatePatchedFunction(data),
+			router: () => undefined,
+			context,
+			contextProperty: targetPath[targetPath.length - 1]
 		};
+		result.router = MakePatchRouter(result);
 		patchedFunctions.set(target, result);
-		context[targetPath[targetPath.length - 1]] = MakePatchRouter(result);
+		context[result.contextProperty] = result.router;
 	} else if (forceUpdate) {
 		result.precomputed = UpdatePatchedFunction(result);
 	}
@@ -183,7 +190,10 @@ export function GetPatchedFunctionsInfo(): Map<string, PatchedFunctionInfo> {
 	for (const [name, data] of patchedFunctions) {
 		result.set(name, {
 			name,
+			original: data.original,
 			originalHash: data.originalHash,
+			sdkEntrypoint: data.router,
+			currentEntrypoint: data.context[data.contextProperty],
 			hookedByMods: ArrayUnique(data.precomputed.hooks.map((h) => h.mod)),
 			patchedByMods: Array.from(data.precomputed.patchesSources),
 		});
