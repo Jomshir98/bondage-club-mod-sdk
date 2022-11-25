@@ -20,5 +20,12 @@
 	"tsdocMetadata": {
 		"enabled": false
 	},
-	"newlineKind": "crlf"
+	"newlineKind": "crlf",
+	"messages": {
+		"extractorMessageReporting": {
+			"ae-wrong-input-file-type": {
+				"logLevel": "none"
+			}
+		}
+	}
 }

@@ -26,6 +26,8 @@ function Init(): ModSDKGlobalAPI {
 /** @public */
 const bcModSdk = Init();
 // Make this both CommonJS and IIFE bundle
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+declare const exports: any;
 if (typeof exports !== 'undefined') {
 	Object.defineProperty(exports, '__esModule', {
 		value: true,
