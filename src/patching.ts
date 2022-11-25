@@ -28,7 +28,7 @@ interface IPatchedFunctionDataBase {
 
 interface IPatchedFunctionData extends IPatchedFunctionDataBase {
 	precomputed: IPatchedFunctionPrecomputed;
-	readonly context: any;
+	readonly context: Record<string, any>;
 	readonly contextProperty: string;
 	router: (...args: any[]) => any;
 }
@@ -109,7 +109,7 @@ function UpdatePatchedFunction(data: IPatchedFunctionDataBase): IPatchedFunction
 				if (arguments.length !== 1 || !Array.isArray(args)) {
 					throw new Error(`Mod ${hook.mod} failed to call next hook: Expected args to be array, got ${typeof nextargs}`);
 				}
-				nextHook.call(this, nextargs);
+				return nextHook.call(this, nextargs);
 			}]);
 			onExit?.();
 			return resIntermediate;
@@ -155,7 +155,7 @@ function InitPatchableFunction(target: string, forceUpdate: boolean = false): IP
 			precomputed: UpdatePatchedFunction(data),
 			router: () => undefined,
 			context,
-			contextProperty: targetPath[targetPath.length - 1]
+			contextProperty: targetPath[targetPath.length - 1],
 		};
 		result.router = MakePatchRouter(result);
 		patchedFunctions.set(target, result);
