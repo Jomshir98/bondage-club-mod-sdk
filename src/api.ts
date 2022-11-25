@@ -71,8 +71,14 @@ export interface ModSDKModAPI<Unknown = any> {
  * @public
  */
 export interface ModSDKModInfo {
+	/** Short name or abbreviation of the mod */
 	name: string;
+	/** Full name of the mod */
+	fullName: string;
+	/** Version or other metadata for the mod, visible by other mods */
 	version: string;
+	/** Link to public repository with source code for this mod */
+	repository?: string;
 }
 
 /**
@@ -106,6 +112,22 @@ export interface PatchedFunctionInfo {
 }
 
 /**
+ * Additional options mods can optionally give when registering
+ * @public
+ */
+export interface ModSDKModOptions {
+	/**
+	 * [OPTIONAL]
+	 *
+	 * If `true` subsequent calls to `registerMod` will unload old one, replacing it.
+	 *
+	 * If `false` any attempt to register a new mod with same name will fail.
+	 * @default false
+	 */
+	allowReplace?: boolean;
+}
+
+/**
  * The global API of the SDK
  *
  * Accessible using the exported value or as `window.bcModSdk`
@@ -119,11 +141,15 @@ export interface ModSDKGlobalAPI<Unknown = any> {
 
 	/**
 	 * Register a mod, receiving access to the mod API
-	 * @param name - Name of the mod
-	 * @param version - Version or other metadata for the mod, visible by other mods
-	 * @param allowReplace - If `true` subsequent calls to `registerMod` will unload old one, replacing it.
-	 * If `false` any attempt to register a new mod with same name will fail. Defaults to `false`
+	 * @param info - Info about the mod, necessary to register the mod
+	 * @param options - [OPTIONAL] Options the mod can specify for ModSDK
 	 * @returns The API usable by mod. @see ModSDKModAPI
+	 * @see ModSDKModInfo
+	 */
+	registerMod(info: ModSDKModInfo, options?: ModSDKModOptions): ModSDKModAPI<Unknown>;
+
+	/**
+	 * @deprecated This way to register mod is deprecated in favour of passing object info, which is more future-proof
 	 */
 	registerMod(name: string, version: string, allowReplace?: boolean): ModSDKModAPI<Unknown>;
 

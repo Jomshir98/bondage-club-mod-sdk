@@ -1,4 +1,4 @@
-import { ModSDKModAPI, ModSDKModInfo, PatchHook } from './api';
+import type { ModSDKModAPI, ModSDKModInfo, ModSDKModOptions, PatchHook } from './api';
 import { ThrowError } from './errors';
 import { CallOriginal, GetOriginalHash, IHookData, UpdateAllPatches } from './patching';
 import { IsObject } from './utils';
@@ -10,7 +10,10 @@ interface IModPatchesDefinition {
 
 interface ModInfo {
 	readonly name: string;
+	fullName: string;
 	version: string;
+	repository?: string;
+
 	allowReplace: boolean;
 	api: ModSDKModAPI;
 	loaded: boolean;
@@ -28,26 +31,63 @@ export function UnloadMod(mod: ModInfo): void {
 	UpdateAllPatches();
 }
 
-export function RegisterMod(name: string, version: string, allowReplace?: boolean): ModSDKModAPI {
-	if (typeof name !== 'string' || !name) {
-		ThrowError(`Failed to register mod: Expected non-empty name string, got ${typeof name}`);
+export function RegisterMod(info: ModSDKModInfo | string, options?: ModSDKModOptions | string, oldAllowReplace?: boolean): ModSDKModAPI {
+	if (typeof info === 'string' && typeof options === 'string') {
+		alert(
+			`Mod SDK warning: Mod '${info}' is registering in a deprecated way.\n` +
+			'It will work for now, but please inform author to update.',
+		);
+		info = {
+			name: info,
+			fullName: info,
+			version: options,
+		};
+		options = {
+			allowReplace: oldAllowReplace === true,
+		};
 	}
-	if (typeof version !== 'string') {
-		ThrowError(`Failed to register mod '${name}': Expected version string, got ${typeof version}`);
+	if (!info || typeof info !== 'object') {
+		ThrowError(`Failed to register mod: Expected info object, got ${typeof info}`);
 	}
-	allowReplace = allowReplace === true;
+	if (typeof info.name !== 'string' || !info.name) {
+		ThrowError(`Failed to register mod: Expected name to be non-empty string, got ${typeof info.name}`);
+	}
+	let descriptor = `'${info.name}'`;
+	if (typeof info.fullName !== 'string' || !info.fullName) {
+		ThrowError(`Failed to register mod ${descriptor}: Expected fullName to be non-empty string, got ${typeof info.fullName}`);
+	}
+	descriptor = `'${info.fullName} (${info.name})'`;
+	if (typeof info.version !== 'string') {
+		ThrowError(`Failed to register mod ${descriptor}: Expected version to be string, got ${typeof info.version}`);
+	}
+	if (!info.repository) {
+		info.repository = undefined;
+	}
+	if (info.repository !== undefined && typeof info.repository !== 'string') {
+		ThrowError(`Failed to register mod ${descriptor}: Expected repository to be undefined or string, got ${typeof info.version}`);
+	}
 
-	const currentMod = registeredMods.get(name);
+	if (options == null) {
+		options = {};
+	}
+
+	if (!options || typeof options !== 'object') {
+		ThrowError(`Failed to register mod ${descriptor}: Expected options to be undefined or object, got ${typeof options}`);
+	}
+
+	const allowReplace = options.allowReplace === true;
+
+	const currentMod = registeredMods.get(info.name);
 	if (currentMod) {
 		if (!currentMod.allowReplace || !allowReplace) {
-			ThrowError(`Refusing to load mod '${name}': it is already loaded and doesn't allow being replaced.\nWas the mod loaded multiple times?`);
+			ThrowError(`Refusing to load mod ${descriptor}: it is already loaded and doesn't allow being replaced.\nWas the mod loaded multiple times?`);
 		}
 		UnloadMod(currentMod);
 	}
 
 	const getPatchInfo = (functionName: string) => {
 		if (typeof functionName !== 'string' || !functionName) {
-			ThrowError(`Mod '${name}' failed to patch a function: Expected function name string, got ${typeof functionName}`);
+			ThrowError(`Mod ${descriptor} failed to patch a function: Expected function name string, got ${typeof functionName}`);
 		}
 		let functionPatchInfo = newInfo.patching.get(functionName);
 		if (!functionPatchInfo) {
@@ -64,14 +104,14 @@ export function RegisterMod(name: string, version: string, allowReplace?: boolea
 		unload: () => UnloadMod(newInfo),
 		hookFunction: (functionName: string, priority: number, hook: PatchHook): (() => void) => {
 			if (!newInfo.loaded) {
-				ThrowError(`Mod '${newInfo.name}' attempted to call SDK function after being unloaded`);
+				ThrowError(`Mod ${descriptor} attempted to call SDK function after being unloaded`);
 			}
 			const functionPatchInfo = getPatchInfo(functionName);
 			if (typeof priority !== 'number') {
-				ThrowError(`Mod '${name}' failed to hook function '${functionName}': Expected priority number, got ${typeof priority}`);
+				ThrowError(`Mod ${descriptor} failed to hook function '${functionName}': Expected priority number, got ${typeof priority}`);
 			}
 			if (typeof hook !== 'function') {
-				ThrowError(`Mod '${name}' failed to hook function '${functionName}': Expected hook function, got ${typeof hook}`);
+				ThrowError(`Mod ${descriptor} failed to hook function '${functionName}': Expected hook function, got ${typeof hook}`);
 			}
 			const hookData: IHookData = {
 				mod: newInfo.name,
@@ -90,11 +130,11 @@ export function RegisterMod(name: string, version: string, allowReplace?: boolea
 		},
 		patchFunction: (functionName: string, patches: Record<string, string | null>): void => {
 			if (!newInfo.loaded) {
-				ThrowError(`Mod '${newInfo.name}' attempted to call SDK function after being unloaded`);
+				ThrowError(`Mod ${descriptor} attempted to call SDK function after being unloaded`);
 			}
 			const functionPatchInfo = getPatchInfo(functionName);
 			if (!IsObject(patches)) {
-				ThrowError(`Mod '${name}' failed to patch function '${functionName}': Expected patches object, got ${typeof patches}`);
+				ThrowError(`Mod ${descriptor} failed to patch function '${functionName}': Expected patches object, got ${typeof patches}`);
 			}
 			for (const [k, v] of Object.entries(patches)) {
 				if (typeof v === 'string') {
@@ -102,14 +142,14 @@ export function RegisterMod(name: string, version: string, allowReplace?: boolea
 				} else if (v === null) {
 					functionPatchInfo.patches.delete(k);
 				} else {
-					ThrowError(`Mod '${name}' failed to patch function '${functionName}': Invalid format of patch '${k}'`);
+					ThrowError(`Mod ${descriptor} failed to patch function '${functionName}': Invalid format of patch '${k}'`);
 				}
 			}
 			UpdateAllPatches();
 		},
 		removePatches: (functionName: string): void => {
 			if (!newInfo.loaded) {
-				ThrowError(`Mod '${newInfo.name}' attempted to call SDK function after being unloaded`);
+				ThrowError(`Mod ${descriptor} attempted to call SDK function after being unloaded`);
 			}
 			const functionPatchInfo = getPatchInfo(functionName);
 			functionPatchInfo.patches.clear();
@@ -118,34 +158,36 @@ export function RegisterMod(name: string, version: string, allowReplace?: boolea
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		callOriginal: (functionName: string, args: any[], context?: any): any => {
 			if (!newInfo.loaded) {
-				ThrowError(`Mod '${newInfo.name}' attempted to call SDK function after being unloaded`);
+				ThrowError(`Mod ${descriptor} attempted to call SDK function after being unloaded`);
 			}
 			if (typeof functionName !== 'string' || !functionName) {
-				ThrowError(`Mod '${name}' failed to call a function: Expected function name string, got ${typeof functionName}`);
+				ThrowError(`Mod ${descriptor} failed to call a function: Expected function name string, got ${typeof functionName}`);
 			}
 			if (!Array.isArray(args)) {
-				ThrowError(`Mod '${name}' failed to call a function: Expected args array, got ${typeof args}`);
+				ThrowError(`Mod ${descriptor} failed to call a function: Expected args array, got ${typeof args}`);
 			}
 			return CallOriginal(functionName, args, context);
 		},
 		getOriginalHash: (functionName: string): string => {
 			if (typeof functionName !== 'string' || !functionName) {
-				ThrowError(`Mod '${name}' failed to get hash: Expected function name string, got ${typeof functionName}`);
+				ThrowError(`Mod ${descriptor} failed to get hash: Expected function name string, got ${typeof functionName}`);
 			}
 			return GetOriginalHash(functionName);
 		},
 	};
 
 	const newInfo: ModInfo = {
-		name,
-		version,
+		name: info.name,
+		fullName: info.fullName,
+		version: info.version,
+		repository: info.repository,
 		allowReplace,
 		api,
 		loaded: true,
 		patching: new Map(),
 	};
 
-	registeredMods.set(name, newInfo);
+	registeredMods.set(info.name, newInfo);
 
 	return Object.freeze(api);
 }
@@ -155,7 +197,9 @@ export function GetModsInfo(): ModSDKModInfo[] {
 	for (const mod of registeredMods.values()) {
 		result.push({
 			name: mod.name,
+			fullName: mod.fullName,
 			version: mod.version,
+			repository: mod.repository,
 		});
 	}
 	return result;

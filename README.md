@@ -23,7 +23,13 @@ import bcModSDK from 'bondage-club-mod-sdk';
 ## Example usage
 
 ```ts
-const modApi = bcModSDK.registerMod('MyExampleModName', '1.0.0');
+const modApi = bcModSDK.registerMod({
+	name: 'MyExMod',
+	fullName: 'My example mod',
+	version: '1.0.0',
+	// Optional - Link to the source code of the mod
+	repository: 'https://github.com/Jomshir98/bondage-club-mod-sdk',
+});
 
 // Example: Add original text to the end of any garble text
 // For more details see `SpeechGarble` function in BC code
