@@ -89,20 +89,20 @@ export interface PatchedFunctionInfo {
 	name: string;
 
 	/** The original function */
-	original: (...args: any[]) => any;
+	original?: (...args: any[]) => any;
 
 	/** CRC32 has of the original function */
 	originalHash: string;
 
 	/** SDK-generated entrypoint that the global function was replaced with */
-	sdkEntrypoint: (...args: any[]) => any;
+	sdkEntrypoint?: (...args: any[]) => any;
 
 	/**
 	 * Entrypoint that SDK collected at the time of calling of the `getPatchingInfo` method.
 	 *
 	 * If the function wasn't overwritten, it should equal `sdkEntrypoint`
 	 */
-	currentEntrypoint: (...args: any[]) => any;
+	currentEntrypoint?: (...args: any[]) => any;
 
 	/** List of names of mods that hooked this function */
 	hookedByMods: string[];
