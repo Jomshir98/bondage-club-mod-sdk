@@ -3,6 +3,8 @@ import { ThrowError } from './errors';
 import { CallOriginal, GetOriginalHash, IHookData, UpdateAllPatches } from './patching';
 import { IsObject } from './utils';
 
+type FuncType = (...args: any[]) => any;
+
 interface IModPatchesDefinition {
 	hooks: IHookData[];
 	patches: Map<string, string>;
@@ -102,7 +104,7 @@ export function RegisterMod(info: ModSDKModInfo | string, options?: ModSDKModOpt
 
 	const api: ModSDKModAPI = {
 		unload: () => UnloadMod(newInfo),
-		hookFunction: (functionName: string, priority: number, hook: PatchHook): (() => void) => {
+		hookFunction: <T extends FuncType = any>(functionName: string, priority: number, hook: PatchHook<T>): (() => void) => {
 			if (!newInfo.loaded) {
 				ThrowError(`Mod ${descriptor} attempted to call SDK function after being unloaded`);
 			}
