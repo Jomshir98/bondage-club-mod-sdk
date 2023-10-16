@@ -3,7 +3,7 @@ import { ThrowError } from './errors';
 import { CallOriginal, GetOriginalHash, IHookData, UpdateAllPatches } from './patching';
 import { IsObject } from './utils';
 
-type FuncType = (...args: any[]) => any;
+type FuncType = (...args: never[]) => unknown;
 
 interface IModPatchesDefinition {
 	hooks: IHookData[];
@@ -104,6 +104,7 @@ export function RegisterMod(info: ModSDKModInfo | string, options?: ModSDKModOpt
 
 	const api: ModSDKModAPI = {
 		unload: () => UnloadMod(newInfo),
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		hookFunction: <T extends FuncType = any>(functionName: string, priority: number, hook: PatchHook<T>): (() => void) => {
 			if (!newInfo.loaded) {
 				ThrowError(`Mod ${descriptor} attempted to call SDK function after being unloaded`);

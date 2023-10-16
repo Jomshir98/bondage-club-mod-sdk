@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-type FuncType = (...args: any[]) => any;
+type FuncType = (...args: never[]) => unknown;
 
 /**
  * This is how hook from mod looks like.
