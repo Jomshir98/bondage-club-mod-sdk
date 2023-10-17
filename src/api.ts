@@ -1,6 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
-type FuncType = (...args: never[]) => unknown;
+/**
+ * A type signifying any unknown function.
+ * @public
+ */
+export type AnyFunction = (...args: any) => any;
 
 /**
  * This is how hook from mod looks like.
@@ -12,10 +16,10 @@ type FuncType = (...args: never[]) => unknown;
  * The return value is then used as return value instead of original one.
  * @public
  */
-export type PatchHook<T extends FuncType = any> = (
-	args: Parameters<T>,
-	next: (args: Parameters<T>) => ReturnType<T>,
-) => ReturnType<T>;
+export type PatchHook<TFunction extends AnyFunction = AnyFunction> = (
+	args: [...Parameters<TFunction>],
+	next: (args: [...Parameters<TFunction>]) => ReturnType<TFunction>,
+) => ReturnType<TFunction>;
 
 /** @public */
 export interface ModSDKModAPI {
@@ -24,13 +28,13 @@ export interface ModSDKModAPI {
 
 	/**
 	 * Hook a BC function
-	 * @template T - The type of hooked function, _e.g._ `typeof CharacterRefresh`
+	 * @template TFunction - The type of hooked function, _e.g._ `typeof CharacterRefresh`
 	 * @param functionName - Name of function to hook. Can contain dots to change methods in objects (e.g. `Player.CanChange`)
 	 * @param priority - Number used to determinate order hooks will be called in. Higher number is called first
 	 * @param hook - The hook itself to use, @see PatchHook
 	 * @returns Function that can be called to remove this hook
 	 */
-	hookFunction<T extends FuncType = any>(functionName: string, priority: number, hook: PatchHook<T>): () => void;
+	hookFunction<TFunction extends AnyFunction = AnyFunction>(functionName: string, priority: number, hook: PatchHook<TFunction>): () => void;
 
 	/**
 	 * Call original function, bypassing any hooks and ignoring any patches applied by ALL mods.
