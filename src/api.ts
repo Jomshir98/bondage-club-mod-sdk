@@ -1,6 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 /**
+ * A type signifying any unknown function.
+ * @public
+ */
+export type AnyFunction = (...args: any) => any;
+
+/**
  * This is how hook from mod looks like.
  *
  * As first argument it receives all arguments the original function received.
@@ -10,21 +16,25 @@
  * The return value is then used as return value instead of original one.
  * @public
  */
-export type PatchHook<Unknown = any> = (args: Unknown[], next: (args: any[]) => Unknown) => any;
+export type PatchHook<TFunction extends AnyFunction = AnyFunction> = (
+	args: [...Parameters<TFunction>],
+	next: (args: [...Parameters<TFunction>]) => ReturnType<TFunction>,
+) => ReturnType<TFunction>;
 
 /** @public */
-export interface ModSDKModAPI<Unknown = any> {
+export interface ModSDKModAPI {
 	/** Unload this mod, removing any hooks or patches by it. To continue using SDK another call to `registerMod` is required */
 	unload(): void;
 
 	/**
 	 * Hook a BC function
+	 * @template TFunction - The type of hooked function, _e.g._ `typeof CharacterRefresh`
 	 * @param functionName - Name of function to hook. Can contain dots to change methods in objects (e.g. `Player.CanChange`)
 	 * @param priority - Number used to determinate order hooks will be called in. Higher number is called first
 	 * @param hook - The hook itself to use, @see PatchHook
 	 * @returns Function that can be called to remove this hook
 	 */
-	hookFunction(functionName: string, priority: number, hook: PatchHook<Unknown>): () => void;
+	hookFunction<TFunction extends AnyFunction = AnyFunction>(functionName: string, priority: number, hook: PatchHook<TFunction>): () => void;
 
 	/**
 	 * Call original function, bypassing any hooks and ignoring any patches applied by ALL mods.
@@ -133,7 +143,7 @@ export interface ModSDKModOptions {
  * Accessible using the exported value or as `window.bcModSdk`
  * @public
  */
-export interface ModSDKGlobalAPI<Unknown = any> {
+export interface ModSDKGlobalAPI {
 	/** The version of the SDK itself. Attempting to load two different SDK versions will warn, but work as long as `apiVersion` is same. */
 	readonly version: string;
 	/** The API version of the SDK itself. Attempting to load two different SDK versions will fail. */
@@ -146,12 +156,12 @@ export interface ModSDKGlobalAPI<Unknown = any> {
 	 * @returns The API usable by mod. @see ModSDKModAPI
 	 * @see ModSDKModInfo
 	 */
-	registerMod(info: ModSDKModInfo, options?: ModSDKModOptions): ModSDKModAPI<Unknown>;
+	registerMod(info: ModSDKModInfo, options?: ModSDKModOptions): ModSDKModAPI;
 
 	/**
 	 * @deprecated This way to register mod is deprecated in favour of passing object info, which is more future-proof
 	 */
-	registerMod(name: string, version: string, allowReplace?: boolean): ModSDKModAPI<Unknown>;
+	registerMod(name: string, version: string, allowReplace?: boolean): ModSDKModAPI;
 
 	/** Get info about all registered mods */
 	getModsInfo(): ModSDKModInfo[];

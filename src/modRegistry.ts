@@ -1,4 +1,4 @@
-import type { ModSDKModAPI, ModSDKModInfo, ModSDKModOptions, PatchHook } from './api';
+import type { AnyFunction, ModSDKModAPI, ModSDKModInfo, ModSDKModOptions, PatchHook } from './api';
 import { ThrowError } from './errors';
 import { CallOriginal, GetOriginalHash, IHookData, UpdateAllPatches } from './patching';
 import { IsObject } from './utils';
@@ -102,7 +102,7 @@ export function RegisterMod(info: ModSDKModInfo | string, options?: ModSDKModOpt
 
 	const api: ModSDKModAPI = {
 		unload: () => UnloadMod(newInfo),
-		hookFunction: (functionName: string, priority: number, hook: PatchHook): (() => void) => {
+		hookFunction: <T extends AnyFunction>(functionName: string, priority: number, hook: PatchHook<T>): (() => void) => {
 			if (!newInfo.loaded) {
 				ThrowError(`Mod ${descriptor} attempted to call SDK function after being unloaded`);
 			}
