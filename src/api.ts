@@ -158,11 +158,6 @@ export interface ModSDKGlobalAPI {
 	 */
 	registerMod(info: ModSDKModInfo, options?: ModSDKModOptions): ModSDKModAPI;
 
-	/**
-	 * @deprecated This way to register mod is deprecated in favour of passing object info, which is more future-proof
-	 */
-	registerMod(name: string, version: string, allowReplace?: boolean): ModSDKModAPI;
-
 	/** Get info about all registered mods */
 	getModsInfo(): ModSDKModInfo[];
 

@@ -31,21 +31,7 @@ export function UnloadMod(mod: ModInfo): void {
 	UpdateAllPatches();
 }
 
-export function RegisterMod(info: ModSDKModInfo | string, options?: ModSDKModOptions | string, oldAllowReplace?: boolean): ModSDKModAPI {
-	if (typeof info === 'string' && typeof options === 'string') {
-		alert(
-			`Mod SDK warning: Mod '${info}' is registering in a deprecated way.\n` +
-			'It will work for now, but please inform author to update.',
-		);
-		info = {
-			name: info,
-			fullName: info,
-			version: options,
-		};
-		options = {
-			allowReplace: oldAllowReplace === true,
-		};
-	}
+export function RegisterMod(info: ModSDKModInfo, options?: ModSDKModOptions): ModSDKModAPI {
 	if (!info || typeof info !== 'object') {
 		ThrowError(`Failed to register mod: Expected info object, got ${typeof info}`);
 	}
