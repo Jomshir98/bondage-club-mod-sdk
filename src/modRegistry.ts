@@ -1,6 +1,6 @@
 import type { AnyFunction, ModSDKModAPI, ModSDKModInfo, ModSDKModOptions, PatchHook } from './api';
 import { ThrowError } from './errors';
-import { CallOriginal, GetOriginalHash, IHookData, UpdateAllPatches } from './patching';
+import { IHookData, IPatchedFunctionDataBase, InitPatchableFunction, UpdateAllPatches } from './patching';
 import { IsObject } from './utils';
 
 interface IModPatchesDefinition {
@@ -71,17 +71,14 @@ export function RegisterMod(info: ModSDKModInfo, options?: ModSDKModOptions): Mo
 		UnloadMod(currentMod);
 	}
 
-	const getPatchInfo = (functionName: string) => {
-		if (typeof functionName !== 'string' || !functionName) {
-			ThrowError(`Mod ${descriptor} failed to patch a function: Expected function name string, got ${typeof functionName}`);
-		}
-		let functionPatchInfo = newInfo.patching.get(functionName);
+	const getPatchInfo = (functionData: IPatchedFunctionDataBase) => {
+		let functionPatchInfo = newInfo.patching.get(functionData.name);
 		if (!functionPatchInfo) {
 			functionPatchInfo = {
 				hooks: [],
 				patches: new Map(),
 			};
-			newInfo.patching.set(functionName, functionPatchInfo);
+			newInfo.patching.set(functionData.name, functionPatchInfo);
 		}
 		return functionPatchInfo;
 	};
@@ -92,7 +89,11 @@ export function RegisterMod(info: ModSDKModInfo, options?: ModSDKModOptions): Mo
 			if (!newInfo.loaded) {
 				ThrowError(`Mod ${descriptor} attempted to call SDK function after being unloaded`);
 			}
-			const functionPatchInfo = getPatchInfo(functionName);
+			if (typeof functionName !== 'string' || !functionName) {
+				ThrowError(`Mod ${descriptor} failed to patch a function: Expected function name string, got ${typeof functionName}`);
+			}
+			const functionData = InitPatchableFunction(functionName);
+			const functionPatchInfo = getPatchInfo(functionData);
 			if (typeof priority !== 'number') {
 				ThrowError(`Mod ${descriptor} failed to hook function '${functionName}': Expected priority number, got ${typeof priority}`);
 			}
@@ -118,7 +119,11 @@ export function RegisterMod(info: ModSDKModInfo, options?: ModSDKModOptions): Mo
 			if (!newInfo.loaded) {
 				ThrowError(`Mod ${descriptor} attempted to call SDK function after being unloaded`);
 			}
-			const functionPatchInfo = getPatchInfo(functionName);
+			if (typeof functionName !== 'string' || !functionName) {
+				ThrowError(`Mod ${descriptor} failed to patch a function: Expected function name string, got ${typeof functionName}`);
+			}
+			const functionData = InitPatchableFunction(functionName);
+			const functionPatchInfo = getPatchInfo(functionData);
 			if (!IsObject(patches)) {
 				ThrowError(`Mod ${descriptor} failed to patch function '${functionName}': Expected patches object, got ${typeof patches}`);
 			}
@@ -137,7 +142,11 @@ export function RegisterMod(info: ModSDKModInfo, options?: ModSDKModOptions): Mo
 			if (!newInfo.loaded) {
 				ThrowError(`Mod ${descriptor} attempted to call SDK function after being unloaded`);
 			}
-			const functionPatchInfo = getPatchInfo(functionName);
+			if (typeof functionName !== 'string' || !functionName) {
+				ThrowError(`Mod ${descriptor} failed to patch a function: Expected function name string, got ${typeof functionName}`);
+			}
+			const functionData = InitPatchableFunction(functionName);
+			const functionPatchInfo = getPatchInfo(functionData);
 			functionPatchInfo.patches.clear();
 			UpdateAllPatches();
 		},
@@ -149,16 +158,18 @@ export function RegisterMod(info: ModSDKModInfo, options?: ModSDKModOptions): Mo
 			if (typeof functionName !== 'string' || !functionName) {
 				ThrowError(`Mod ${descriptor} failed to call a function: Expected function name string, got ${typeof functionName}`);
 			}
+			const functionData = InitPatchableFunction(functionName);
 			if (!Array.isArray(args)) {
 				ThrowError(`Mod ${descriptor} failed to call a function: Expected args array, got ${typeof args}`);
 			}
-			return CallOriginal(functionName, args, context);
+			return functionData.original.apply(context ?? globalThis, args);
 		},
 		getOriginalHash: (functionName: string): string => {
 			if (typeof functionName !== 'string' || !functionName) {
 				ThrowError(`Mod ${descriptor} failed to get hash: Expected function name string, got ${typeof functionName}`);
 			}
-			return GetOriginalHash(functionName);
+			const functionData = InitPatchableFunction(functionName);
+			return functionData.originalHash;
 		},
 	};
 
