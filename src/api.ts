@@ -166,6 +166,7 @@ export interface ModSDKGlobalAPI {
 
 	/** Internal API, please **DO NOT USE** */
 	readonly errorReporterHooks: {
+		apiEndpointEnter: ((fn: string, mod: string) => (() => void)) | null;
 		hookEnter: ((fn: string, mod: string) => (() => void)) | null;
 		hookChainExit: ((fn: string, patchMods: ReadonlySet<string>) => (() => void)) | null;
 	};
