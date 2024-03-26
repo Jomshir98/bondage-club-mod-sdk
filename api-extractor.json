@@ -30,6 +30,9 @@
 		"tsdocMessageReporting": {
 			"tsdoc-undefined-tag": {
 				"logLevel": "none"
+			},
+			"tsdoc-unsupported-tag": {
+				"logLevel": "none"
 			}
 		}
 	}
