@@ -20,13 +20,13 @@ interface IPatchedFunctionPrecomputed {
 	readonly final: (...args: any[]) => any;
 }
 
-interface IPatchedFunctionDataBase {
+export interface IPatchedFunctionDataBase {
 	readonly name: string;
 	readonly original: (...args: any[]) => any;
 	readonly originalHash: string;
 }
 
-interface IPatchedFunctionData extends IPatchedFunctionDataBase {
+export interface IPatchedFunctionData extends IPatchedFunctionDataBase {
 	precomputed: IPatchedFunctionPrecomputed;
 	readonly context: Record<string, any>;
 	readonly contextProperty: string;
@@ -125,7 +125,7 @@ function UpdatePatchedFunction(data: IPatchedFunctionDataBase): IPatchedFunction
 	};
 }
 
-function InitPatchableFunction(target: string, forceUpdate: boolean = false): IPatchedFunctionData {
+export function InitPatchableFunction(target: string, forceUpdate: boolean = false): IPatchedFunctionData {
 	let result = patchedFunctions.get(target);
 	if (!result) {
 		let context: Record<string, any> = window as any;
@@ -167,26 +167,9 @@ function InitPatchableFunction(target: string, forceUpdate: boolean = false): IP
 }
 
 export function UpdateAllPatches(): void {
-	const functions: Set<string> = new Set();
-
-	for (const mod of registeredMods.values()) {
-		for (const functionName of mod.patching.keys()) {
-			functions.add(functionName);
-		}
+	for (const patchInfo of patchedFunctions.values()) {
+		patchInfo.precomputed = UpdatePatchedFunction(patchInfo);
 	}
-
-	for (const functionName of patchedFunctions.keys()) {
-		functions.add(functionName);
-	}
-
-	for (const functionName of functions) {
-		InitPatchableFunction(functionName, true);
-	}
-}
-
-export function CallOriginal(target: string, args: any[], context: any = window): any {
-	const data = InitPatchableFunction(target);
-	return data.original.apply(context, args);
 }
 
 export function GetPatchedFunctionsInfo(): Map<string, PatchedFunctionInfo> {
@@ -203,8 +186,4 @@ export function GetPatchedFunctionsInfo(): Map<string, PatchedFunctionInfo> {
 		});
 	}
 	return result;
-}
-
-export function GetOriginalHash(target: string): string {
-	return InitPatchableFunction(target).originalHash;
 }

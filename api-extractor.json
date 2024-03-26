@@ -26,6 +26,14 @@
 			"ae-wrong-input-file-type": {
 				"logLevel": "none"
 			}
+		},
+		"tsdocMessageReporting": {
+			"tsdoc-undefined-tag": {
+				"logLevel": "none"
+			},
+			"tsdoc-unsupported-tag": {
+				"logLevel": "none"
+			}
 		}
 	}
 }

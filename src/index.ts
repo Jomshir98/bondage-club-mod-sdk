@@ -1,5 +1,5 @@
 import { ThrowError } from './errors';
-import type { ModSDKGlobalAPI, ModSDKModAPI, ModSDKModInfo, ModSDKModOptions } from './api';
+import type { ModSDKGlobalAPI } from './api';
 import { API_VERSION, CreateGlobalAPI } from './sdkApi';
 import { IsObject } from './utils';
 
@@ -18,21 +18,6 @@ function Init(): ModSDKGlobalAPI {
 			`Mod SDK warning: Loading different but compatible versions ('${VERSION}' vs '${window.bcModSdk.version}')\n` +
 			'One of mods you are using is using an old version of SDK. It will work for now but please inform author to update',
 		);
-		// Shim to support new registration way with old api
-		if (window.bcModSdk.version.startsWith('1.0.') && typeof (window.bcModSdk as (ModSDKGlobalAPI & { _shim10register?: true; }))._shim10register === 'undefined') {
-			const oldAPI = window.bcModSdk;
-			const shimmedAPI: ModSDKGlobalAPI & { _shim10register: true; } = Object.freeze({
-				...oldAPI,
-				registerMod: (info: ModSDKModInfo | string, options?: ModSDKModOptions | string, oldAllowReplace?: boolean): ModSDKModAPI => {
-					if (info && typeof info === 'object' && typeof info.name === 'string' && typeof info.version === 'string')
-						return oldAPI.registerMod(info.name, info.version, typeof options === 'object' && !!options && options.allowReplace === true);
-					// @ts-expect-error: Passing known possibly wrong data
-					return oldAPI.registerMod(info, options, oldAllowReplace);
-				},
-				_shim10register: true,
-			});
-			window.bcModSdk = shimmedAPI;
-		}
 	}
 	// Otherwise this exact version of Mod SDK is already loaded, so do nothing
 	return window.bcModSdk;
