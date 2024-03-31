@@ -13,6 +13,7 @@ export function CreateGlobalAPI(): ModSDKGlobalAPI {
 		getModsInfo: GetModsInfo,
 		getPatchingInfo: GetPatchedFunctionsInfo,
 		errorReporterHooks: Object.seal({
+			apiEndpointEnter: null,
 			hookEnter: null,
 			hookChainExit: null,
 		}),
